@@ -7,6 +7,7 @@ import styled from "styled-components";
 import { Link } from 'react-router-dom'
 //import { base } from '../firebase/firebase';
 import { MyConsumer } from "../ContextComp";
+import { verifyLine } from '../utils'
 
 const Wrapper = styled.div`
   display: flex;
@@ -63,7 +64,7 @@ class MainPage extends Component {
       }
 
       value.split(" ").forEach(elem => {
-        if(!this.verifyLine(elem)){
+        if(!verifyLine(elem)){
           num.push(elem)
           this.setState({
             wrongLineNum: { value: true, num }
@@ -87,10 +88,7 @@ class MainPage extends Component {
     }
   }
 
-  verifyLine = value => {
-    const rgx2 = /(^[0-9]{3}$)|(n[0-9]{2}$)|(^[0-9]{2}$)|[le]-[0-9]$|l[0-9]{2}$/i
-    return rgx2.test(value)
-  }
+
 
   changeLine = name => e => {
     console.log(e.target.value)

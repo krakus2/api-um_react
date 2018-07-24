@@ -6,7 +6,7 @@ class MyProvider extends Component {
   constructor() {
     super()
     this.state = {
-      auth: false
+      auth: JSON.parse(localStorage.getItem('auth')) || false
     }
   }
 
@@ -22,6 +22,8 @@ class MyProvider extends Component {
     const { auth } = this.state
     this.setState({
       auth: !auth
+    }, () => {
+      localStorage.setItem('auth', JSON.stringify(this.state.auth))
     })
   }
 

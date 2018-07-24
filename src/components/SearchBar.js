@@ -39,7 +39,7 @@ const SearchBar = ({ change, submit, blur, classes }) => (
       <form noValidate autoComplete="off" onSubmit={submit} >
         <TextField
           id="writingLine"
-          label="Type line number, which you want to search"
+          label="Line number"
           placeholder="401 e-7 25"
           helperText={"You can search for more than one at once, including trams"}
           type="text"
