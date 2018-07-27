@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
 import SearchBar from './SearchBar';
 import InlineError from './Messages/InlineError'
-import Favs from './Favs'
 import NavBar from './NavBar'
+import Map from './Map'
 import styled from "styled-components";
-import { Link } from 'react-router-dom'
-//import { base } from '../firebase/firebase';
-import { MyConsumer } from "../ContextComp";
+import { MyConsumer } from "../context/ContextComp";
 import { verifyLine } from '../utils'
+import axios from 'axios'
 
 const Wrapper = styled.div`
   display: flex;
@@ -41,7 +40,9 @@ class MainPage extends Component {
     },
     login: "",
     password: "",
-    loading: false
+    loading: false,
+    avgLat: null,
+    avgLng: null
   }
 
   blur = e => {
@@ -78,14 +79,50 @@ class MainPage extends Component {
         acc[i] = cur;
         return acc;
       }, {});
-      console.log(obj)
+      //console.log(obj)
       //const line = [1, 2, 3]
-      this.setState({ line: obj })
+      this.setState({ line: obj }, () => {
+        this.queryAxios()
+      })
+      
     } else {
       this.setState({
         wrongLineNum: { value: true, num: [] }
       })
     }
+  }
+
+  queryAxios = () => {
+    const { line } = this.state
+    const urlArray = []
+    const results = []
+    let type, avgLat = 0, avgLng = 0
+    console.log(process.env.REACT_APP_API_UM)
+    Object.values(line).map((elem, i) => {
+      (elem.length === 3) ? type = 1 : type = 2;
+      urlArray.push(`https://thingproxy.freeboard.io/fetch/https://api.um.warszawa.pl/api/action/busestrams_get/?resource_id=f2e5503e-927d-4ad3-9500-4ab9e55deb59&apikey=${process.env.REACT_APP_API_UM}&type=${type}&line=${elem}`)
+    })
+    const promiseArray = urlArray.map( url => axios.get(url))
+    axios.all(promiseArray)
+    .then(data => {
+      data
+        .map(elem => elem.data.result)
+        .reduce((a, b) => a.concat(b), [])
+        .map(elem => {
+          results.push([elem.Lines, elem.Lat, elem.Lon])
+          avgLat += elem.Lat
+          avgLng += elem.Lon
+        })
+        //console.log(results, avgLat/results.length , avgLng/results.length)
+      this.setState({ results, avgLat: avgLat/results.length, avgLng: avgLng/results.length },
+      () => {
+        this.showOnMap()
+      })
+    })
+  }
+
+  showOnMap = () => {
+    console.log(this.state.results, this.state.avgLat, this.state.avgLng)
   }
 
 
@@ -95,28 +132,13 @@ class MainPage extends Component {
     this.setState({ [name]: e.target.value })
   }
 
-  /*componentWillMount() {
-    this.linesRef = base.syncState('line', {
-      context: this,
-      state: 'line'
-    });
-
-    this.authRef = base.syncState('auth', {
-      context: this,
-      state: 'auth'
-    });
-  }*/
-
-
-  /*componentWillUnmount() {
-    base.removeBinding(this.linesRef);
-    base.removeBinding(this.authRef);
-  }*/
+  handleMarkerClick = () => {
+    console.log("Kliknales w marker!")
+  }
 
 
   render() {
-    const { wrongLineNum, auth } = this.state
-    const { context } = this.props;
+    const { wrongLineNum, results, avgLat, avgLng } = this.state
     return (
       <Wrapper>
       <NavBar />
@@ -129,13 +151,19 @@ class MainPage extends Component {
               <InlineError text={`Type anything to search`}/> : null}
           </SearchBarWrapper>
         </TopSection>
+        <Map 
+          isMarkerShown={true}
+          onMarkerClick={this.handleMarkerClick}
+          markers={results}
+          defaultCenter={[avgLat, avgLng]}
+          />
       </Wrapper>
     );
   }
 }
 
 export default props => (
-  <MyConsumer.Consumer>
+  <MyConsumer>
     {context => <MainPage {...props} context={context} />}
-  </MyConsumer.Consumer>
+  </MyConsumer>
 );

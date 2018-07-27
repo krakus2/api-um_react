@@ -3,13 +3,13 @@ import PropTypes from 'prop-types';
 import styled from "styled-components";
 import { Link, withRouter, } from 'react-router-dom';
 import { auth } from '../firebase/index';
-import { withContext } from '../ContextComp'
+import { withContext } from '../context/ContextComp'
 import { compose } from 'recompose';
 import { validateEmail } from '../utils.js'
+import * as routes from '../constants/routes';
 import InlineError from './Messages/InlineError'
 import NavBar from './NavBar'
 import { withStyles } from '@material-ui/core/styles';
-import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -93,7 +93,7 @@ import Zoom from '@material-ui/core/Zoom';
     justify-content: space-between;
   `;
 
-  const RegLink = props => <Link to="/register" {...props} />
+  const RegLink = props => <Link to={routes.REGISTER} {...props} />
 
   const StylRegLink = styled(RegLink)`
   text-decoration: none;
@@ -129,7 +129,7 @@ class LoginPage extends Component {
   onSubmit = e => {
     const { email, password } = this.state
     let { emailErr } = this.state
-    const { history } = this.props;
+    const { history, context } = this.props;
     e.preventDefault();
 
     if(!validateEmail(email)){
@@ -144,9 +144,11 @@ class LoginPage extends Component {
     if(!emailErr){
       auth.doSignInWithEmailAndPassword(email, password)
       .then(authUser => {
+        console.log(authUser.uid)
         this.setState(() => ({ ...INITIAL_STATE }));
-        this.props.context.changeAuthStatus()
-        history.push("/");
+        context.updateUid(authUser.uid)
+        context.changeAuthStatus()
+        history.push(routes.MAIN_PAGE);
       })
       .catch(error => {
         console.log(error)
@@ -176,8 +178,8 @@ class LoginPage extends Component {
 
 
   render() {
-    const { classes, context } = this.props;
-    const { strength, email, password, signInErr, emailErr } = this.state;
+    const { classes } = this.props;
+    const { email, password, signInErr, emailErr } = this.state;
     const isInvalid = password === '' || email === '';
 
     return (
@@ -259,7 +261,7 @@ class LoginPage extends Component {
               </ButtonWrapper>
             </FormWrapper>
             <TextWrapper>
-              Forget your password? <Link to='/forgetPass'>Click here</Link>
+              Forget your password? <Link to={routes.FORGET_PASS}>Click here</Link>
             </TextWrapper>
           </Paper>
             { signInErr.value && <InlineError text={`Something went wrong. Try again. Message: ${signInErr.message}`}/>}

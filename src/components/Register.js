@@ -5,9 +5,9 @@ import { auth } from '../firebase/index';
 import styled from "styled-components";
 import InlineError from './Messages/InlineError'
 import { validateEmail } from '../utils.js'
+import * as routes from '../constants/routes';
 import NavBar from './NavBar'
 import { withStyles } from '@material-ui/core/styles';
-import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import owasp from 'owasp-password-strength-test'
 import LinearProgress from '@material-ui/core/LinearProgress';
@@ -15,7 +15,7 @@ import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
 import Zoom from '@material-ui/core/Zoom';
 import Paper from '@material-ui/core/Paper';
-import { MyConsumer, withContext } from '../ContextComp'
+import { withContext } from '../context/ContextComp'
 import { compose } from 'recompose';
 
 
@@ -99,24 +99,13 @@ import { compose } from 'recompose';
     justify-content: space-between;
   `;
 
-  const RegLink = props => <Link to="/login" {...props} />
+  const RegLink = props => <Link to={routes.LOGIN} {...props} />
 
   const StylRegLink = styled(RegLink)`
   text-decoration: none;
 
     &:focus, &:hover, &:visited, &:link, &:active {
        text-decoration: none;
-    }
-  `
-
-  const RegLink2 = props => <Link to="/register" {...props} />
-
-  const StylRegLink2 = styled(RegLink2)`
-  text-decoration: none;
-
-    &:focus, &:hover, &:visited, &:link, &:active {
-       text-decoration: none;
-       color: white;
     }
   `
 
@@ -169,7 +158,7 @@ class Register extends Component {
       .then(authUser => {
         this.setState(() => ({ ...INITIAL_STATE }));
         this.props.context.changeAuthStatus()
-        history.push("/");
+        history.push(routes.MAIN_PAGE);
       })
       .catch(error => {
         console.log(error)

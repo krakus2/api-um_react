@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import styled from "styled-components";
+import * as routes from '../constants/routes';
 //import InlineError from './Messages/InlineError'
 import NavBar from './NavBar'
 import { withStyles } from '@material-ui/core/styles';
@@ -10,7 +11,7 @@ import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
 import Paper from '@material-ui/core/Paper';
 import Zoom from '@material-ui/core/Zoom';
-import { MyContext, withContext } from '../ContextComp'
+import { MyContext, withContext } from '../context/ContextComp'
 import { compose } from 'recompose';
 
   const styles = theme => ( {

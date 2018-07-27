@@ -1,0 +1,21 @@
+.example-enter {
+  opacity: 0.01;
+  transform: translateX(-40%);
+}
+
+.example-enter.example-enter-active {
+  opacity: 1;
+  transition: all 200ms ease-in;
+  transform: translateX(0);
+}
+
+.example-leave {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.example-leave.example-leave-active {
+  opacity: 0.01;
+  transition: all 150ms ease-in;
+  transform: translateX(40%);
+}

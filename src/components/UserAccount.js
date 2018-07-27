@@ -1,11 +1,26 @@
 import React, { Component } from 'react';
+import { withAuthorization, withContext } from '../context/ContextComp'
+import { compose } from 'recompose';
 
-class App extends Component {
+class UserAccount extends Component {
+
+  state = {
+    kupa: "kupa"
+  }
+
   render() {
     return (
-      "User account"
+      this.state.kupa
     );
   }
 }
 
-export default App;
+//const authCondition = (authUser) => !!authUser;
+
+const withEverything = compose(
+  withContext,
+  withAuthorization,
+);
+
+export default withEverything(UserAccount)
+

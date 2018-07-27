@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Link, withRouter, } from 'react-router-dom';
+import { auth, db } from '../firebase/index';
+import '../styles/NavBar.css'
+import * as routes from '../constants/routes';
 import styled from "styled-components";
 import { compose } from 'recompose';
-import InlineError from './Messages/InlineError';
 import { verifyLine } from '../utils'
 import { withStyles } from '@material-ui/core/styles';
-import { withContext } from '../ContextComp'
+import { withContext } from '../context/ContextComp'
 import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/core/Icon';
 import AppBar from '@material-ui/core/AppBar';
@@ -16,21 +18,8 @@ import Chip from '@material-ui/core/Chip';
 import Tooltip from '@material-ui/core/Tooltip';
 import Zoom from '@material-ui/core/Zoom';
 import TextField from '@material-ui/core/TextField';
-
-  const Nav = styled.div`
-    width: 70vw;
-    height: 80px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    background-color: #c8e6c9;
-    margin-top: 0;
-    -webkit-box-shadow: 0 1px 2px #777;
-    -moz-box-shadow: 0 2px 1px #777;
-    box-shadow: 0 2px 1px #777;
-    font-family: 'Roboto', sans-serif;
-    border-radius: 2px;
-  `
+import CircularProgress from '@material-ui/core/CircularProgress';
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group'; // ES6
 
   const FirstPart = styled.div`
     display: flex;
@@ -88,11 +77,11 @@ import TextField from '@material-ui/core/TextField';
 
       },
       span: {
-        fontSize: 16,
+        fontSize: 15,
         paddingLeft: 25
       },
       span2: {
-        fontSize: 14,
+        fontSize: 15,
       },
       favLineRoot: {
         margin: "0 5px"
@@ -113,23 +102,38 @@ import TextField from '@material-ui/core/TextField';
       textField: {
         marginLeft: theme.spacing.unit,
         marginRight: theme.spacing.unit,
-        width: 52,
+        width: 30,
       },
       TheInput: {
-      		fontSize: 14,
+      		fontSize: 15,
           textAlign: "center",
+          paddingBottom: 3,
+          paddingTop: 0,
+          top: 105
       },
       TheHelper: {
         fontSize: 11,
         textAlign: "center",
         marginTop: 2
       },
-      chip: {
-        margin: theme.spacing.unit / 2,
+      root1: {
+        backgroundColor: "red"
+      },
+      root2: {
+        backgroundColor: "orange",
+        '&:hover, &:focus': {
+          backgroundColor: "orange",
+        },
+        '&:active': {
+          backgroundColor: "orange",
+        },
+      },
+      progress: {
+        margin: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 4}px`
       },
     });
 
-    const HomeLink = props => <Link to="/" {...props} />
+    const HomeLink = props => <Link to={routes.MAIN_PAGE} {...props} />
 
     const StylHomeLink = styled(HomeLink)`
     text-decoration: none;
@@ -140,7 +144,7 @@ import TextField from '@material-ui/core/TextField';
       }
     `
 
-    const LogRegLink = props => <Link to="/login" {...props} />
+    const LogRegLink = props => <Link to={routes.LOGIN} {...props} />
 
     const StylLogRegLink = styled(LogRegLink)`
     text-decoration: none;
@@ -155,21 +159,29 @@ class NavBar extends Component {
 
   state = {
     line: "",
-    favLines: [],
-    favLineErr: false
+    favLines: {},
+    favLineErr: false,
+    loader: true
+    //clickTrueFalse: false
   }
 
-  handleClick = () => {
+  handleLogoutClick = () => {
     const { history } = this.props;
-    this.props.context.changeAuthStatus()
-    history.push("/");
+    if(window.navigator.onLine){
+      auth.doSignOut();
+      this.props.context.changeAuthStatus()
+      history.push(routes.MAIN_PAGE);
+    } else {
+      alert("You don't have internet connection")
+    }
+    
   }
 
   onAvatarClick = (e) => {
     e.stopPropagation()
     const { history } = this.props;
     console.log("kliknales w avatar")
-    history.push("/userAccount");
+    history.push(routes.USER_ACCOUNT);
   }
 
   handleChange = name => e => {
@@ -180,30 +192,102 @@ class NavBar extends Component {
   onFavLineSubmit = e => {
     e.preventDefault()
     let { favLines, line } = this.state
-    line = line.trim()
-    if(verifyLine(line)){
-      favLines.push(line)
-      this.setState({
-        favLines,
-        line: ""
-      });
+    line = line.trim().toUpperCase()
+    if(window.navigator.onLine){
+      const arr = Object.keys(favLines).map(k => favLines[k])
+      favLines = new Set(arr.reverse())
+      if(verifyLine(line)){
+        favLines.add(line)
+        const obj = Array.from(favLines).reverse().reduce((acc, cur, i) => {
+          acc[i] = cur;
+          return acc;
+        }, {});
+        this.setState({
+          favLines: obj,
+          line: ""
+        });
+        //firebase.User().then(user => console.log(user.id))
+        db.updateLines(this.props.context.state.uid, obj)
+      } else {
+        this.setState({
+          favLineErr: true
+        });
+      }
     } else {
-      this.setState({
-        favLineErr: true
-      });
+      alert("You don't have internet connection")
     }
+    
   }
 
   handleFavDelete = line => e => {
     const { favLines } = this.state
-    favLines.splice(favLines.indexOf(line), 1)
-    this.setState({ favLines })
+    if(window.navigator.onLine){
+      for (var key in favLines) {
+        if (favLines[key] === line) delete favLines[key];
+    }
+    this.setState({ favLines, [line]: false })
+    db.updateLines(this.props.context.state.uid, favLines)
+    } else {
+      alert("You don't have internet connection")
+    }
+  }
+
+  handleFavClick = line => e => {
+    console.log(line)
+    if(this.state[line] === undefined){
+      this.setState({ [line]: true })
+    } else if(this.state[line] === true){
+      this.setState({ [line]: false })
+    } else {
+      this.setState({ [line]: true })
+    }
+  }
+
+  waitFor = (condition, callback) => {
+      if(!condition()) {
+          //console.log('waiting');
+          window.setTimeout(this.waitFor.bind(null, condition, callback), 100); /* this checks the flag every 100 milliseconds*/
+      } else {
+          //console.log('done');
+          callback();
+      }
+  }
+
+  componentDidMount(){
+    //TODO check loading when there is no internet connection
+    if(window.navigator.onLine){
+      if(this.props.context.state.auth){
+        this.waitFor(() => !!this.props.context.state.uid, () =>
+        db.getLines(this.props.context.state.uid)
+          .then(snapshot => {
+            if(snapshot.val()){
+              //console.log(snapshot.val().lines)
+              this.setState({
+                favLines: snapshot.val().lines,
+                loader: false
+              })
+            } else {
+              this.setState({
+                favLines: {},
+                loader: false
+              })
+            }
+          })
+        )
+      } else {
+        this.setState({
+          favLines: {},
+          loader: false
+        })
+      }
+    }
   }
 
   render() {
-    const { favLines, favLineErr, line } = this.state
+    const { favLines, favLineErr, loader } = this.state
     let { classes, context } = this.props;
     let { auth } = context.state
+    let arr = Object.keys(favLines).map(k => favLines[k])
 
     return (
       <AppBar className={classes.root} position="static" color="default">
@@ -225,38 +309,54 @@ class NavBar extends Component {
           <SecondPartAuth>
           {/*<Avatar className={classes.avatar}>H</Avatar>*/}
           {/*dodac avatar do kazdego favline z kolorem pasujacym do znacznikow na mapie*/}
-            {favLines.map((elem, i) => (
+            {
+              loader && <CircularProgress className={classes.progress} size={30} />
+            }
+            <ReactCSSTransitionGroup
+                transitionName="example"
+                transitionEnterTimeout={200}
+                transitionLeaveTimeout={150}>
+            {
+              arr.map((elem, i) => (
                 <Chip
-                  key={i}
+                  key={elem}
+                  clickable={true}
                   //avatar={avatar}
                   label={elem}
                   onDelete={this.handleFavDelete(elem)}
-                  classes={{root: classes.favLineRoot, label: classes.span2}}
+                  onClick={this.handleFavClick(elem)}
+                  classes={{root: classes.favLineRoot, label: classes.span2,
+                    clickable: !this.state[elem] ? null : classes.root2}}
                 />
               ))
             }
+            </ReactCSSTransitionGroup>
             <form className={classes.container} noValidate autoComplete="off" style={{
               marginRight: "20px" }} onSubmit={this.onFavLineSubmit}>
-              <TextField
-                id="favLine"
-                helperText={ favLineErr && "Wrong line"}
-                error={favLineErr ? true : false}
-                className={classes.textField}
-                value={this.state.line}
-                onChange={this.handleChange("line")}
-                margin="normal"
-                placeholder="Fav Line"
-                InputProps={{
-                  classes: {
-                    input: classes.TheInput,
-                  },
-                }}
-                FormHelperTextProps={{
-                  classes: {
-                    root: classes.TheHelper
-                  }
-                }}
-              />
+              <Tooltip title="Add your favourite line" classes={{tooltip: classes.tooltip }} TransitionComponent={Zoom}
+                placement="bottom">
+                <TextField
+                  id="favLine"
+                  helperText={ favLineErr && "Wrong line"}
+                  error={favLineErr ? true : false}
+                  className={classes.textField}
+                  value={this.state.line}
+                  onChange={this.handleChange("line")}
+                  margin="normal"
+                  //placeholder="Fav Line"
+                  //label="LINE"
+                  InputProps={{
+                    classes: {
+                      input: classes.TheInput,
+                    },
+                  }}
+                  FormHelperTextProps={{
+                    classes: {
+                      root: classes.TheHelper
+                    }
+                  }}
+                />
+            </Tooltip>
             </form>
             <Chip
                avatar={
@@ -268,7 +368,7 @@ class NavBar extends Component {
                  </Tooltip >
                }
                label="Logout"
-               onDelete={this.handleClick}
+               onDelete={this.handleLogoutClick}
                classes={{root: classes.chip, label: classes.span}}
            />
           </SecondPartAuth>
@@ -283,10 +383,13 @@ NavBar.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
+const authCondition = (authUser) => !!authUser;
+
 const withStyleAndContext = compose(
   withRouter,
   withContext,
   withStyles(styles),
+  //withAuthorization,
 );
 
 export default withStyleAndContext(NavBar)
