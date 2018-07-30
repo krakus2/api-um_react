@@ -1,11 +1,14 @@
 import React, {Component} from 'react';
-import { compose, withProps } from "recompose"
+import { compose, withProps, withHandlers, withState, lifecycle } from "recompose"
 import { withScriptjs, withGoogleMap, GoogleMap, Marker, InfoWindow } from "react-google-maps"
 import { getColor } from '../utils'
+import { timingSafeEqual } from 'crypto';
 
 class MapComponent extends Component {
 
-  state = {}
+  state = {
+    zoom: 11
+  }
 
   updateLinesTrue = (line) => () => {
     this.setState({ [line]: true })
@@ -13,6 +16,10 @@ class MapComponent extends Component {
 
   updateLinesFalse = (line) => () => {
     this.setState({ [line]: false })
+  }
+
+  onZoomChanged = (event) => {
+    console.log(event)
   }
 
   pinSymbol = (color) => {
@@ -27,12 +34,28 @@ class MapComponent extends Component {
 }
 
   render(){
+    const { searchCounter } = this.props
+    let myProps = {}
+    if(this.props.defaultCenter[0] && searchCounter){
+      myProps.center = {
+        lat: this.props.defaultCenter[0],
+        lng: this.props.defaultCenter[1]
+      }
+    } 
+    if(searchCounter){
+      myProps.zoom = 11
+    }
+
     return (
       <GoogleMap
         defaultZoom={11}
-        defaultCenter={{ lat: this.props.defaultCenter[0] ? this.props.defaultCenter[0] : 52.22977, 
-          lng: this.props.defaultCenter[1] ? this.props.defaultCenter[1] : 21.01178 }}
-      >
+        defaultCenter={{ lat: 52.22977, lng: 21.01178 }}
+        ref={this.props.onMapMounted}
+          //TODO - spytaj damiana o tego refa 
+        onZoomChanged={this.props.onZoomChanged}
+        {...myProps}
+        
+     >
         {
           this.props.markers && this.props.markers.map((elem, i) => (
             <Marker key={`${elem[0]}${i}`} position={{ lat: elem[1], lng: elem[2] }} 
@@ -60,7 +83,27 @@ const Map = compose(
       containerElement: <div style={{ height: `500px`, width: "70%", marginTop: "30px",
         borderRadius: "4px", boxShadow: "0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12)" }} />,
       mapElement: <div style={{ height: `100%`, borderRadius: "4px" }} />,
-    }), 
+    }),
+    withState('zoom', 'onZoomChange', 8),
+    withHandlers(() => {
+      const refs = {
+        map: undefined,
+      }
+
+      return {
+        onMapMounted: () => ref => {
+          refs.map = ref
+        },
+        onZoomChanged: ({ onZoomChange }) => () => {
+          onZoomChange(refs.map.getZoom())
+        }
+      }
+    }),
+    lifecycle({
+      componentDidUpdate(prevProps, prevState) {
+        console.log(this.props.zoom)
+      }
+    }),
     withScriptjs,
     withGoogleMap
   )(MapComponent)

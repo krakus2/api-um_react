@@ -44,7 +44,8 @@ class MainPage extends Component {
     loading: false,
     avgLat: null,
     avgLng: null,
-    emptyResult: false
+    emptyResult: false,
+    searchCounter: false
   }
 
   blur = e => {
@@ -60,6 +61,9 @@ class MainPage extends Component {
     if(e){
       e.preventDefault()
     }
+    clearInterval(this.interval)
+    this.setState({ searchCounter: true })
+
     const num = []
     const lineSet = new Set()
     const favLines = this.state.favLines
@@ -70,6 +74,9 @@ class MainPage extends Component {
 
     if(afterFavOff){
       line.splice(line.indexOf(afterFavOff), 1)
+      if(line.length === 0){
+        clearInterval(this.interval)
+      }
       this.setState({ line })
     }
 
@@ -114,7 +121,7 @@ class MainPage extends Component {
   }
 
   queryAxios = () => {
-    const { line } = this.state
+    const { line, searchCounter } = this.state
     const urlArray = []
     const results = []
     let type, avgLat = 0, avgLng = 0
@@ -135,12 +142,29 @@ class MainPage extends Component {
           avgLng += elem.Lon
         })
         //console.log(results, avgLat/results.length , avgLng/results.length)
-      this.setState({ results, avgLat: avgLat/results.length, avgLng: avgLng/results.length },
-      () => {
-        if(!results.length){
-          this.setState({ emptyResult: true})
-        }
-      })
+      if(searchCounter){
+        this.setState({ results, avgLat: avgLat/results.length, avgLng: avgLng/results.length },
+          () => {
+            if(!results.length){
+              this.setState({ emptyResult: true})
+            }
+            this.interval = setInterval(() => {
+              if(this.state.results){
+                console.log("nowe zapytanie do axiosa leci")
+                this.setState({ searchCounter: false}, () => {
+                  this.queryAxios()
+                })
+              }
+            }, 5000)
+          })
+      } else {
+        this.setState({ results },
+          () => {
+            if(!results.length){
+              this.setState({ emptyResult: true})
+            }
+          })
+      }
     })
     .catch(error => {
       console.log(error)
@@ -160,9 +184,11 @@ class MainPage extends Component {
     //console.log(getColor("120"), getColor(345))
     //console.log("mainpage", this.props.context.state.auth)
     this.interval = setInterval(() => {
-      if(this.state.line.length){
+      if(this.state.results){
         console.log("nowe zapytanie do axiosa leci")
-        this.queryAxios()
+        this.setState({ searchCounter: false}, () => {
+          this.queryAxios()
+        })
       }
     }, 5000)
   }
@@ -189,7 +215,7 @@ class MainPage extends Component {
 
 
   render() {
-    const { wrongLineNum, results, avgLat, avgLng, emptyResult } = this.state
+    const { wrongLineNum, results, avgLat, avgLng, emptyResult, searchCounter } = this.state
     return (
       <Wrapper>
       <NavBar onFavClickOn={this.onFavClickOn} onFavClickOff={this.onFavClickOff}/>
@@ -209,7 +235,8 @@ class MainPage extends Component {
           onMarkerClick={this.handleMarkerClick}
           markers={results}
           defaultCenter={[avgLat, avgLng]}
-          />
+          searchCounter={searchCounter}
+        />
       </Wrapper>
     );
   }
