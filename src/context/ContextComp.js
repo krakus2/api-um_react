@@ -10,7 +10,8 @@ class MyProvider extends Component {
   constructor() {
     super()
     this.state = {
-      auth: false,
+      auth: JSON.parse(localStorage.getItem('auth')) || false, 
+      //to jest nieladnie, raczej w cdm
       uid: null
     }
   }
@@ -19,7 +20,6 @@ class MyProvider extends Component {
     //TODO!!!
     //trzeba dodac zabezpieczenie, jesli uzytkownik usunalby swoje userid, ale dalej byl zalogowany
     this.setState({
-      auth: JSON.parse(localStorage.getItem('auth')) || false,
       uid: JSON.parse(localStorage.getItem('uid')) || null
     })
     console.log("Rerender contextu")

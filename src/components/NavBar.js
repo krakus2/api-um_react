@@ -6,7 +6,7 @@ import '../styles/NavBar.css'
 import * as routes from '../constants/routes';
 import styled from "styled-components";
 import { compose } from 'recompose';
-import { verifyLine } from '../utils'
+import { verifyLine, getColor } from '../utils'
 import { withStyles } from '@material-ui/core/styles';
 import { withContext } from '../context/ContextComp'
 import Button from '@material-ui/core/Button';
@@ -26,7 +26,7 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group'; // ES6
     flex-direction: row;
     justify-content: flex-start;
     margin-left: 20px;
-    width: 50%;
+    width: 25%;
   `
 
   const SecondPart = styled.div`
@@ -34,7 +34,7 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group'; // ES6
     flex-direction: row;
     justify-content: flex-end;
     margin-right: 20px;
-    width: 50%;
+    width: 75%;
   `
 
   const SecondPartAuth = styled.div`
@@ -42,6 +42,7 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group'; // ES6
     flex-direction: row;
     justify-content: center;
     align-items: center;
+    wrap: no-wrap;
   `
 
   const styles = theme => ({
@@ -73,7 +74,7 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group'; // ES6
         alignItems: 'center',
       },
       chip: {
-        margin: theme.spacing.unit
+        margin: theme.spacing.unit,
 
       },
       span: {
@@ -84,7 +85,7 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group'; // ES6
         fontSize: 15,
       },
       favLineRoot: {
-        margin: "0 5px"
+        margin: "2px 5px"
       },
       avatar: {
         cursor: "pointer",
@@ -115,18 +116,6 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group'; // ES6
         fontSize: 11,
         textAlign: "center",
         marginTop: 2
-      },
-      root1: {
-        backgroundColor: "red"
-      },
-      root2: {
-        backgroundColor: "orange",
-        '&:hover, &:focus': {
-          backgroundColor: "orange",
-        },
-        '&:active': {
-          backgroundColor: "orange",
-        },
       },
       progress: {
         margin: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 4}px`
@@ -207,6 +196,7 @@ class NavBar extends Component {
           line: ""
         });
         //firebase.User().then(user => console.log(user.id))
+        console.log("wpierdalam do bazy", this.props.context.state.uid, obj)
         db.updateLines(this.props.context.state.uid, obj)
       } else {
         this.setState({
@@ -227,13 +217,14 @@ class NavBar extends Component {
     }
     this.setState({ favLines, [line]: false })
     db.updateLines(this.props.context.state.uid, favLines)
+    this.props.onFavClickOff(line)
     } else {
       alert("You don't have internet connection")
     }
   }
 
   handleFavClick = line => e => {
-    console.log(line)
+    console.log(line, "line z handleFavClick")
     if(this.state[line] === undefined){
       this.setState({ [line]: true })
     } else if(this.state[line] === true){
@@ -241,6 +232,8 @@ class NavBar extends Component {
     } else {
       this.setState({ [line]: true })
     }
+
+    !this.state[line] ? this.props.onFavClickOn(line) : this.props.onFavClickOff(line)
   }
 
   waitFor = (condition, callback) => {
@@ -256,7 +249,9 @@ class NavBar extends Component {
   componentDidMount(){
     //TODO check loading when there is no internet connection
     if(window.navigator.onLine){
+      console.log("odczytuje z bazy0", this.props.context.state.auth)
       if(this.props.context.state.auth){
+        console.log("odczytuje z bazy1")
         this.waitFor(() => !!this.props.context.state.uid, () =>
         db.getLines(this.props.context.state.uid)
           .then(snapshot => {
@@ -319,6 +314,8 @@ class NavBar extends Component {
             {
               arr.map((elem, i) => (
                 <Chip
+                  style={ {backgroundColor: !this.state[elem] ? "#e0e0e0" : 
+                    `${getColor(elem)}`} }
                   key={elem}
                   clickable={true}
                   //avatar={avatar}
@@ -326,7 +323,7 @@ class NavBar extends Component {
                   onDelete={this.handleFavDelete(elem)}
                   onClick={this.handleFavClick(elem)}
                   classes={{root: classes.favLineRoot, label: classes.span2,
-                    clickable: !this.state[elem] ? null : classes.root2}}
+                    }}
                 />
               ))
             }
@@ -383,13 +380,10 @@ NavBar.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-const authCondition = (authUser) => !!authUser;
-
 const withStyleAndContext = compose(
   withRouter,
   withContext,
   withStyles(styles),
-  //withAuthorization,
 );
 
 export default withStyleAndContext(NavBar)

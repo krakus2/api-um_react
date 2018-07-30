@@ -5,7 +5,7 @@ import NavBar from './NavBar'
 import Map from './Map'
 import styled from "styled-components";
 import { MyConsumer } from "../context/ContextComp";
-import { verifyLine } from '../utils'
+import { verifyLine, getColor } from '../utils'
 import axios from 'axios'
 
 const Wrapper = styled.div`
@@ -33,7 +33,8 @@ class MainPage extends Component {
 
   state = {
     writingLine: "",
-    line: null,
+    line: [],
+    favLines: [],
     wrongLineNum: {
       value: false,
       num: []
@@ -42,7 +43,8 @@ class MainPage extends Component {
     password: "",
     loading: false,
     avgLat: null,
-    avgLng: null
+    avgLng: null,
+    emptyResult: false
   }
 
   blur = e => {
@@ -50,15 +52,22 @@ class MainPage extends Component {
       this.setState({ wrongLineNum: { value: false }})
   }
 
-  submitLine = e => {
-    e.preventDefault()
+  submitLine = (e, afterFavOff = false) => {
+    //TODO 
+    //mimo kliknieca w favLine, po submitowaniu searchbara wyszukuja sie tylko 
+    //te z search bara
+    //przepisac to na arrayach
+    if(e){
+      e.preventDefault()
+    }
     const num = []
-    const line = new Set()
+    const lineSet = new Set()
+    const favLines = this.state.favLines
     const regexp = /\s{2,}/gi
-    this.setState({ wrongLineNum: { value: false }})
-    console.log(this.state.writingLine)
-    if(this.state.writingLine.length){
-      let value = this.state.writingLine.trim()
+    this.setState({ wrongLineNum: { value: false, num: [] }, emptyResult: false})
+    let value = this.state.writingLine.trim()
+
+    if(value){
       //console.log(value)
       if(!!value.match(regexp)){
         value = value.replace(regexp, " ")
@@ -71,24 +80,30 @@ class MainPage extends Component {
             wrongLineNum: { value: true, num }
           })
         } else {
-          line.add(elem)
+          lineSet.add(elem)
         }
       })
+    } else {
+        if(!favLines.length && !afterFavOff){
+          this.setState({
+            wrongLineNum: { value: true, num: [] }
+          })
+        }
+    }
 
-      const obj = Array.from(line).reduce((acc, cur, i) => {
-        acc[i] = cur;
-        return acc;
-      }, {});
-      //console.log(obj)
-      //const line = [1, 2, 3]
-      this.setState({ line: obj }, () => {
+    if(favLines.length){
+      favLines.forEach(elem => {
+        lineSet.add(elem)
+      })
+    }
+
+    const line = Array.from(lineSet)
+    if(line.length){
+      this.setState({ line }, () => {
         this.queryAxios()
       })
-      
     } else {
-      this.setState({
-        wrongLineNum: { value: true, num: [] }
-      })
+      this.setState({ results: [] })
     }
   }
 
@@ -97,8 +112,8 @@ class MainPage extends Component {
     const urlArray = []
     const results = []
     let type, avgLat = 0, avgLng = 0
-    console.log(process.env.REACT_APP_API_UM)
-    Object.values(line).map((elem, i) => {
+
+    line.map((elem, i) => {
       (elem.length === 3) ? type = 1 : type = 2;
       urlArray.push(`https://thingproxy.freeboard.io/fetch/https://api.um.warszawa.pl/api/action/busestrams_get/?resource_id=f2e5503e-927d-4ad3-9500-4ab9e55deb59&apikey=${process.env.REACT_APP_API_UM}&type=${type}&line=${elem}`)
     })
@@ -116,32 +131,58 @@ class MainPage extends Component {
         //console.log(results, avgLat/results.length , avgLng/results.length)
       this.setState({ results, avgLat: avgLat/results.length, avgLng: avgLng/results.length },
       () => {
-        this.showOnMap()
+        if(!results.length){
+          this.setState({ emptyResult: true})
+        }
       })
+    })
+    .catch(error => {
+      console.log(error)
     })
   }
 
-  showOnMap = () => {
-    console.log(this.state.results, this.state.avgLat, this.state.avgLng)
-  }
-
-
-
   changeLine = name => e => {
-    console.log(e.target.value)
-    this.setState({ [name]: e.target.value })
+    //console.log(e.target.value)
+    this.setState({ [name]: e.target.value.toUpperCase() })
   }
 
   handleMarkerClick = () => {
     console.log("Kliknales w marker!")
   }
 
+  componentDidMount() {
+    //console.log(getColor("120"), getColor(345))
+    //console.log("mainpage", this.props.context.state.auth)
+    this.interval = setInterval(() => {
+      if(this.state.line.length){
+        console.log("nowe zapytanie do axiosa leci")
+        this.queryAxios()
+      }
+    }, 5000)
+  }
+
+  onFavClickOn = (elem) => {
+    const { favLines } = this.state
+    favLines.push(elem)
+    this.setState({ favLines }, () => {
+      this.submitLine()
+    })
+  }
+
+  onFavClickOff = elem => {
+    const { favLines } = this.state
+    favLines.splice(favLines.indexOf(elem), 1)
+    this.setState({ favLines }, () => {
+      this.submitLine(null, true)
+    })
+  }
+
 
   render() {
-    const { wrongLineNum, results, avgLat, avgLng } = this.state
+    const { wrongLineNum, results, avgLat, avgLng, emptyResult } = this.state
     return (
       <Wrapper>
-      <NavBar />
+      <NavBar onFavClickOn={this.onFavClickOn} onFavClickOff={this.onFavClickOff}/>
         <TopSection>
           <SearchBarWrapper>
             <SearchBar change={this.changeLine("writingLine")} submit={this.submitLine} blur={this.blur}/>
@@ -149,6 +190,8 @@ class MainPage extends Component {
               <InlineError text={`There is no line like ${wrongLineNum.num.join(", ")}`}/> : null }
             {(wrongLineNum.value && !wrongLineNum.num.length) ?
               <InlineError text={`Type anything to search`}/> : null}
+            { emptyResult &&  
+            <InlineError text={`There isn't any bus on map. Try something else`}/>}
           </SearchBarWrapper>
         </TopSection>
         <Map 
