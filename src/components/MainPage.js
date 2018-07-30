@@ -63,9 +63,15 @@ class MainPage extends Component {
     const num = []
     const lineSet = new Set()
     const favLines = this.state.favLines
+    let { line } = this.state
     const regexp = /\s{2,}/gi
     this.setState({ wrongLineNum: { value: false, num: [] }, emptyResult: false})
     let value = this.state.writingLine.trim()
+
+    if(afterFavOff){
+      line.splice(line.indexOf(afterFavOff), 1)
+      this.setState({ line })
+    }
 
     if(value){
       //console.log(value)
@@ -97,7 +103,7 @@ class MainPage extends Component {
       })
     }
 
-    const line = Array.from(lineSet)
+    line = Array.from(lineSet)
     if(line.length){
       this.setState({ line }, () => {
         this.queryAxios()
@@ -161,6 +167,10 @@ class MainPage extends Component {
     }, 5000)
   }
 
+  componentWillUnmount(){
+    clearInterval(this.interval)
+  }
+
   onFavClickOn = (elem) => {
     const { favLines } = this.state
     favLines.push(elem)
@@ -173,7 +183,7 @@ class MainPage extends Component {
     const { favLines } = this.state
     favLines.splice(favLines.indexOf(elem), 1)
     this.setState({ favLines }, () => {
-      this.submitLine(null, true)
+      this.submitLine(null, elem)
     })
   }
 
