@@ -261,7 +261,7 @@ class LoginPage extends Component {
               </ButtonWrapper>
             </FormWrapper>
             <TextWrapper>
-              Forget your password? <Link to={routes.FORGET_PASS}>Click here</Link>
+              Forgot your password? <Link to={routes.FORGET_PASS}>Click here</Link>
             </TextWrapper>
           </Paper>
             { signInErr.value && <InlineError text={`Something went wrong. Try again. Message: ${signInErr.message}`}/>}
