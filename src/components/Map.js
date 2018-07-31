@@ -36,6 +36,7 @@ class MapComponent extends Component {
   render(){
     const { searchCounter } = this.props
     let myProps = {}
+    let myProps2 = {}
     if(this.props.defaultCenter[0] && searchCounter){
       myProps.center = {
         lat: this.props.defaultCenter[0],
@@ -43,7 +44,7 @@ class MapComponent extends Component {
       }
     } 
     if(searchCounter){
-      myProps.zoom = 11
+      myProps2.zoom = 11
     }
 
     return (
@@ -54,6 +55,7 @@ class MapComponent extends Component {
           //TODO - spytaj damiana o tego refa 
         onZoomChanged={this.props.onZoomChanged}
         {...myProps}
+        {...myProps2}
         
      >
         {

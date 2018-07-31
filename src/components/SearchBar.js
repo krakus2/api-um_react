@@ -3,7 +3,14 @@ import PropTypes from 'prop-types';
 import styled from "styled-components";
 import { withStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Switch from '@material-ui/core/Switch';
 import Paper from '@material-ui/core/Paper';
+import Button from '@material-ui/core/Button';
+import Fade from '@material-ui/core/Fade';
+import CircularProgress from '@material-ui/core/CircularProgress';
+//import Tooltip from '@material-ui/core/Tooltip';
+//import Zoom from '@material-ui/core/Zoom';
 
   const Wrapper = styled.div`
     margin-top: 10px;
@@ -30,10 +37,24 @@ import Paper from '@material-ui/core/Paper';
       root: {
         marginTop: 20,
         padding: '0px 10px 10px 10px'
-      }
+      },
+      button: {
+        margin: theme.spacing.unit,
+        fontSize: '14px'
+      },
+      switch: {
+        marginLeft: '8px',
+      },
+      formControlRoot: {
+        fontSize: '14px'
+      },
+      progress: {
+        margin: 0
+      },
   });
 
-const SearchBar = ({ change, submit, blur, classes }) => (
+const SearchBar = ({ change, submit, blur, classes, handleSwitchChange, autoRefresh, 
+  loading, onSearchClick }) => (
   <Wrapper>
     <Paper className={classes.root} elevation={1}>
       <form noValidate autoComplete="off" onSubmit={submit} >
@@ -63,6 +84,35 @@ const SearchBar = ({ change, submit, blur, classes }) => (
           onChange={change}
           autoFocus={true}
           margin="normal"
+        />
+        <Button variant="contained" color="primary" type="submit"
+          className={classes.button} size="large" onClick={onSearchClick}>
+            { loading ? 
+                <Fade
+                  in={loading}
+                  style={{
+                    transitionDelay: loading ? '200ms' : '0ms',
+                  }}
+                  unmountOnExit
+                > 
+                  <CircularProgress color="white" size={25} className={classes.progress}/>
+                </Fade>
+                  :
+                "Search"
+            }  
+        </Button>
+        <FormControlLabel
+          control={
+            <Switch
+              classes={{root: classes.switch}}
+              checked={autoRefresh}
+              onChange={handleSwitchChange('autoRefresh')}
+              value="autoRefresh"
+              color="primary"
+            />
+          }
+          label="Auto-refresh"
+          classes={{label: classes.formControlRoot}}
         />
       </form>
     </Paper>

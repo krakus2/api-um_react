@@ -45,19 +45,13 @@ class MainPage extends Component {
     avgLat: null,
     avgLng: null,
     emptyResult: false,
-    searchCounter: false
-  }
-
-  blur = e => {
-    if(!this.state.writingLine)
-      this.setState({ wrongLineNum: { value: false }})
+    searchCounter: false,
+    autoRefresh: false
   }
 
   submitLine = (e, afterFavOff = false) => {
     //TODO 
-    //mimo kliknieca w favLine, po submitowaniu searchbara wyszukuja sie tylko 
-    //te z search bara
-    //przepisac to na arrayach
+    //zeby po submit nie centerowal na stare autobusy!!!
     if(e){
       e.preventDefault()
     }
@@ -90,7 +84,7 @@ class MainPage extends Component {
         if(!verifyLine(elem)){
           num.push(elem)
           this.setState({
-            wrongLineNum: { value: true, num }
+            wrongLineNum: { value: true, num, loading: false  }
           })
         } else {
           lineSet.add(elem)
@@ -99,7 +93,7 @@ class MainPage extends Component {
     } else {
         if(!favLines.length && !afterFavOff){
           this.setState({
-            wrongLineNum: { value: true, num: [] }
+            wrongLineNum: { value: true, num: [], loading: false  }
           })
         }
     }
@@ -116,7 +110,7 @@ class MainPage extends Component {
         this.queryAxios()
       })
     } else {
-      this.setState({ results: [] })
+      this.setState({ results: [], loading: false  })
     }
   }
 
@@ -143,22 +137,16 @@ class MainPage extends Component {
         })
         //console.log(results, avgLat/results.length , avgLng/results.length)
       if(searchCounter){
-        this.setState({ results, avgLat: avgLat/results.length, avgLng: avgLng/results.length },
+        this.setState({ results, avgLat: avgLat/results.length, 
+          avgLng: avgLng/results.length, loading: false },
           () => {
             if(!results.length){
-              this.setState({ emptyResult: true})
+              this.setState({ emptyResult: true })
             }
-            this.interval = setInterval(() => {
-              if(this.state.results){
-                console.log("nowe zapytanie do axiosa leci")
-                this.setState({ searchCounter: false}, () => {
-                  this.queryAxios()
-                })
-              }
-            }, 5000)
+            this.interval = setInterval(this.autoRefresh, 5000)
           })
       } else {
-        this.setState({ results },
+        this.setState({ results, loading: false },
           () => {
             if(!results.length){
               this.setState({ emptyResult: true})
@@ -183,14 +171,7 @@ class MainPage extends Component {
   componentDidMount() {
     //console.log(getColor("120"), getColor(345))
     //console.log("mainpage", this.props.context.state.auth)
-    this.interval = setInterval(() => {
-      if(this.state.results){
-        console.log("nowe zapytanie do axiosa leci")
-        this.setState({ searchCounter: false}, () => {
-          this.queryAxios()
-        })
-      }
-    }, 5000)
+    this.interval = setInterval(this.autoRefresh, 5000)
   }
 
   componentWillUnmount(){
@@ -213,15 +194,43 @@ class MainPage extends Component {
     })
   }
 
+  blur = e => {
+    if(!this.state.writingLine)
+      this.setState({ wrongLineNum: { value: false }})
+  }
+
+  handleSwitchChange = name => event => {
+    this.setState({ [name]: event.target.checked });
+  };
+  
+  autoRefresh = () => {
+    if(this.state.results && this.state.autoRefresh){
+      console.log("nowe zapytanie do axiosa leci")
+      this.setState({ searchCounter: false}, () => {
+        this.queryAxios()
+      })
+    }
+  }
+
+  onSearchClick = () => {
+    this.setState(state => ({
+      loading: !state.loading,
+    }));
+  }
+
 
   render() {
-    const { wrongLineNum, results, avgLat, avgLng, emptyResult, searchCounter } = this.state
+    const { wrongLineNum, results, avgLat, avgLng, emptyResult, searchCounter,
+      autoRefresh, loading } = this.state
     return (
       <Wrapper>
       <NavBar onFavClickOn={this.onFavClickOn} onFavClickOff={this.onFavClickOff}/>
         <TopSection>
           <SearchBarWrapper>
-            <SearchBar change={this.changeLine("writingLine")} submit={this.submitLine} blur={this.blur}/>
+            <SearchBar change={this.changeLine("writingLine")} submit={this.submitLine} 
+              blur={this.blur} autoRefresh={autoRefresh} loading={loading} 
+              handleSwitchChange={this.handleSwitchChange} 
+              onSearchClick={this.onSearchClick} />
             { (wrongLineNum.value && wrongLineNum.num.length) ?
               <InlineError text={`There is no line like ${wrongLineNum.num.join(", ")}`}/> : null }
             {(wrongLineNum.value && !wrongLineNum.num.length) ?
