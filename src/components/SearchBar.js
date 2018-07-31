@@ -14,6 +14,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 
   const Wrapper = styled.div`
     margin-top: 10px;
+    width: 100%;
   `;
 
   const styles = theme => ( {
@@ -22,7 +23,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
       marginRight: theme.spacing.unit,
       marginTop: '5px',
       marginBottom: '5px',
-      width: '40vw',
+      width: '30vw',
       },
       TheInput: {
           fontSize: 18,
@@ -36,7 +37,8 @@ import CircularProgress from '@material-ui/core/CircularProgress';
       },
       root: {
         marginTop: 20,
-        padding: '0px 10px 10px 10px'
+        padding: '0px 10px 10px 10px',
+        textAlign: 'center'
       },
       button: {
         margin: theme.spacing.unit,

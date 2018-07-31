@@ -20,6 +20,7 @@ const SearchBarWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 70%;
 `
 
 const TopSection = styled.div`
