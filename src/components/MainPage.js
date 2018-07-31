@@ -140,8 +140,9 @@ class MainPage extends Component {
         //console.log(results, avgLat/results.length , avgLng/results.length)
       if(searchCounter){
         this.setState({ results, avgLat: avgLat/results.length, 
-          avgLng: avgLng/results.length, loading: false, searchCounter: false },
+          avgLng: avgLng/results.length, loading: false },
           () => {
+            this.setState({ searchCounter: false })
             if(!results.length){
               this.setState({ emptyResult: true })
             }
