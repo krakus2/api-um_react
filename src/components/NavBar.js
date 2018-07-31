@@ -249,9 +249,9 @@ class NavBar extends Component {
   componentDidMount(){
     //TODO check loading when there is no internet connection
     if(window.navigator.onLine){
-      console.log("odczytuje z bazy0", this.props.context.state.auth)
+      //console.log("odczytuje z bazy0", this.props.context.state.auth)
       if(this.props.context.state.auth){
-        console.log("odczytuje z bazy1")
+        //console.log("odczytuje z bazy1")
         this.waitFor(() => !!this.props.context.state.uid, () =>
         db.getLines(this.props.context.state.uid)
           .then(snapshot => {

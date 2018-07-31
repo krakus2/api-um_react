@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import { compose, withProps, withHandlers, withState, lifecycle } from "recompose"
 import { withScriptjs, withGoogleMap, GoogleMap, Marker, InfoWindow } from "react-google-maps"
 import { getColor } from '../utils'
-import { timingSafeEqual } from 'crypto';
 
 class MapComponent extends Component {
 
@@ -103,7 +102,7 @@ const Map = compose(
     }),
     lifecycle({
       componentDidUpdate(prevProps, prevState) {
-        console.log(this.props.zoom)
+       // console.log(this.props.zoom)
       }
     }),
     withScriptjs,

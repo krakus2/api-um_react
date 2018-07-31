@@ -115,6 +115,7 @@ class MainPage extends Component {
   }
 
   queryAxios = () => {
+    console.log("console log z funkcji queryAxios")
     const { line, searchCounter } = this.state
     const urlArray = []
     const results = []
@@ -138,7 +139,7 @@ class MainPage extends Component {
         //console.log(results, avgLat/results.length , avgLng/results.length)
       if(searchCounter){
         this.setState({ results, avgLat: avgLat/results.length, 
-          avgLng: avgLng/results.length, loading: false },
+          avgLng: avgLng/results.length, loading: false, searchCounter: false },
           () => {
             if(!results.length){
               this.setState({ emptyResult: true })
@@ -171,11 +172,13 @@ class MainPage extends Component {
   componentDidMount() {
     //console.log(getColor("120"), getColor(345))
     //console.log("mainpage", this.props.context.state.auth)
-    this.interval = setInterval(this.autoRefresh, 5000)
+    //this.interval = setInterval(this.autoRefresh, 5000)
   }
 
   componentWillUnmount(){
-    clearInterval(this.interval)
+    if(this.interval){
+      clearInterval(this.interval)
+    }
   }
 
   onFavClickOn = (elem) => {
@@ -206,9 +209,7 @@ class MainPage extends Component {
   autoRefresh = () => {
     if(this.state.results && this.state.autoRefresh){
       console.log("nowe zapytanie do axiosa leci")
-      this.setState({ searchCounter: false}, () => {
         this.queryAxios()
-      })
     }
   }
 
