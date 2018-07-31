@@ -45,6 +45,7 @@
     "react-dev-utils": "^5.0.1",
     "react-dom": "^16.4.1",
     "react-google-maps": "^9.4.5",
+    "react-responsive": "^5.0.0",
     "react-router-dom": "^4.3.1",
     "react-transition-group": "^2.4.0",
     "recompose": "^0.27.1",

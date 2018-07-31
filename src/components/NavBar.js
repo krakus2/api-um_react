@@ -287,8 +287,9 @@ class NavBar extends Component {
     return (
       <AppBar className={classes.root} position="static" color="default">
         <FirstPart>
-          <Button variant="contained" color="secondary" className={classes.buttonLarge} size="large" component={StylHomeLink}>
-            <Icon classes={{root: classes.icon, /*colorPrimary: classes.colorPrimary, fontSizeInherit: classes.fontSizeInherit*/}}>
+          <Button variant="contained" color="secondary" className={classes.buttonLarge} 
+            size="large" component={StylHomeLink}>
+            <Icon classes={{root: classes.icon}}>
               departure_board
             </Icon>
             FindBus
@@ -297,13 +298,12 @@ class NavBar extends Component {
         <SecondPart>
         {
           !auth ?
-          <Button variant="contained" color="primary" className={classes.button} size="large" component={StylLogRegLink} >
+          <Button variant="contained" color="primary" className={classes.button} 
+            size="large" component={StylLogRegLink} >
             Login
           </Button>
             :
           <SecondPartAuth>
-          {/*<Avatar className={classes.avatar}>H</Avatar>*/}
-          {/*dodac avatar do kazdego favline z kolorem pasujacym do znacznikow na mapie*/}
             {
               loader && <CircularProgress className={classes.progress} size={30} />
             }
@@ -330,8 +330,8 @@ class NavBar extends Component {
             </ReactCSSTransitionGroup>
             <form className={classes.container} noValidate autoComplete="off" style={{
               marginRight: "20px" }} onSubmit={this.onFavLineSubmit}>
-              <Tooltip title="Add your favourite line" classes={{tooltip: classes.tooltip }} TransitionComponent={Zoom}
-                placement="bottom">
+              <Tooltip title="Add your favourite line" classes={{tooltip: classes.tooltip }} 
+                TransitionComponent={Zoom} placement="bottom">
                 <TextField
                   id="favLine"
                   helperText={ favLineErr && "Wrong line"}
@@ -356,18 +356,18 @@ class NavBar extends Component {
             </Tooltip>
             </form>
             <Chip
-               avatar={
-                 <Tooltip title="Your account" classes={{tooltip: classes.tooltip }} TransitionComponent={Zoom}
-                   placement="bottom">
-                   <Avatar onClick={this.onAvatarClick} classes={{root: classes.avatar}}>
-                     <FaceIcon />
-                   </Avatar>
-                 </Tooltip >
-               }
-               label="Logout"
-               onDelete={this.handleLogoutClick}
-               classes={{root: classes.chip, label: classes.span}}
-           />
+              avatar={
+                <Tooltip title="Your account" classes={{tooltip: classes.tooltip }} 
+                  TransitionComponent={Zoom} placement="bottom">
+                  <Avatar onClick={this.onAvatarClick} classes={{root: classes.avatar}}>
+                    <FaceIcon />
+                  </Avatar>
+                </Tooltip >
+              }
+              label="Logout"
+              onDelete={this.handleLogoutClick}
+              classes={{root: classes.chip, label: classes.span}}
+          />
           </SecondPartAuth>
         }
         </SecondPart>

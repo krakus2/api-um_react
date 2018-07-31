@@ -97,7 +97,7 @@ const SearchBar = ({ change, submit, blur, classes, handleSwitchChange, autoRefr
                   }}
                   unmountOnExit
                 > 
-                  <CircularProgress color="white" size={25} className={classes.progress}/>
+                  <CircularProgress color="inherit" size={25} className={classes.progress}/>
                 </Fade>
                   :
                 "Search"
