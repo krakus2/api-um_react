@@ -4,10 +4,11 @@ import classNames from 'classnames';
 import { Link, withRouter } from 'react-router-dom';
 import styled from "styled-components";
 import SearchBar from './SearchBar';
+import NavBar from './NavBar'
 import { withStyles } from '@material-ui/core/styles';
 import * as routes from '../constants/routes';
 import Icon from '@material-ui/core/Icon';
-import Drawer from '@material-ui/core/Drawer';
+import SwipeableDrawer from '@material-ui/core/Drawer';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import IconButton from '@material-ui/core/IconButton';
@@ -142,7 +143,8 @@ class MainPage_Mob extends React.Component {
     const { anchor, open } = this.state;
 
     const drawer = (
-      <Drawer
+      <SwipeableDrawer
+        disableSwipeToOpen={false}
         variant="persistent"
         anchor={anchor}
         open={open}
@@ -155,7 +157,8 @@ class MainPage_Mob extends React.Component {
             {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
           </IconButton>
         </div>
-      </Drawer>
+        <NavBar onFavClickOn={this.props.onFavClickOn} onFavClickOff={this.props.onFavClickOff}/>
+      </SwipeableDrawer>
     );
 
     let before = null;
@@ -205,7 +208,7 @@ class MainPage_Mob extends React.Component {
             })}
           >
             <div className={classes.drawerHeader} />
-            <SearchBar />
+            {/*<SearchBar />*/}
           </main>
           {after}
         </div>

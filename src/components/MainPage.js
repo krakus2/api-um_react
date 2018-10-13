@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import MainPageMob from './MainPage_Mob'
 import SearchBar from './SearchBar';
 import InlineError from './Messages/InlineError'
 import NavBar from './NavBar'
@@ -7,6 +8,7 @@ import styled from "styled-components";
 import { MyConsumer } from "../context/ContextComp";
 import { verifyLine, getColor } from '../utils'
 import axios from 'axios'
+import MediaQuery from 'react-responsive';
 
 const Wrapper = styled.div`
   display: flex;
@@ -107,7 +109,7 @@ class MainPage extends Component {
 
     line = Array.from(lineSet)
     if(line.length){
-      this.setState({ line }, () => {
+      this.setState({ line, loading: true }, () => {
         this.queryAxios()
       })
     } else {
@@ -215,41 +217,45 @@ class MainPage extends Component {
     }
   }
 
-  onSearchClick = () => {
-    this.setState(state => ({
-      loading: !state.loading,
-    }));
-  }
 
 
   render() {
     const { wrongLineNum, results, avgLat, avgLng, emptyResult, searchCounter,
       autoRefresh, loading } = this.state
     return (
-      <Wrapper>
-      <NavBar onFavClickOn={this.onFavClickOn} onFavClickOff={this.onFavClickOff}/>
-        <TopSection>
-          <SearchBarWrapper>
-            <SearchBar change={this.changeLine("writingLine")} submit={this.submitLine} 
-              blur={this.blur} autoRefresh={autoRefresh} loading={loading} 
-              handleSwitchChange={this.handleSwitchChange} 
-              onSearchClick={this.onSearchClick} />
-            { (wrongLineNum.value && wrongLineNum.num.length) ?
-              <InlineError text={`There is no line like ${wrongLineNum.num.join(", ")}`}/> : null }
-            {(wrongLineNum.value && !wrongLineNum.num.length) ?
-              <InlineError text={`Type anything to search`}/> : null}
-            { emptyResult &&  
-            <InlineError text={`There isn't any bus on map. Try something else`}/>}
-          </SearchBarWrapper>
-        </TopSection>
-        <Map 
-          isMarkerShown={true}
-          onMarkerClick={this.handleMarkerClick}
-          markers={results}
-          defaultCenter={[avgLat, avgLng]}
-          searchCounter={searchCounter}
-        />
-      </Wrapper>
+      <div>
+        <MediaQuery minDeviceWidth={1224}>
+          <Wrapper>
+          <NavBar onFavClickOn={this.onFavClickOn} onFavClickOff={this.onFavClickOff}/>
+            <TopSection>
+              <SearchBarWrapper>
+                <SearchBar change={this.changeLine("writingLine")} submit={this.submitLine} 
+                  blur={this.blur} autoRefresh={autoRefresh} loading={loading} 
+                  handleSwitchChange={this.handleSwitchChange} 
+                />
+                { (wrongLineNum.value && wrongLineNum.num.length) ?
+                  <InlineError text={`There is no line like ${wrongLineNum.num.join(", ")}`}/> : null }
+                {(wrongLineNum.value && !wrongLineNum.num.length) ?
+                  <InlineError text={`Type anything to search`}/> : null}
+                { emptyResult &&  
+                <InlineError text={`There isn't any bus on map. Try something else`}/>}
+              </SearchBarWrapper>
+            </TopSection>
+            <Map 
+              isMarkerShown={true}
+              onMarkerClick={this.handleMarkerClick}
+              markers={results}
+              defaultCenter={[avgLat, avgLng]}
+              searchCounter={searchCounter}
+            />
+          </Wrapper>
+        </ MediaQuery>
+        <MediaQuery maxDeviceWidth={1224}>
+          <MainPageMob context={this.props.context} myState={this.state}
+            onFavClickOn={this.onFavClickOn} onFavClickOff={this.onFavClickOff}
+             />
+        </ MediaQuery>
+      </div>
     );
   }
 }

@@ -14,13 +14,13 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <MediaQuery maxDeviceWidth={1224}>
-          <MainPage_Mob />>
-        </MediaQuery>
-        <MediaQuery minDeviceWidth={1224} >
+        {/*<MediaQuery maxDeviceWidth={1224}>
+             <MainPage_Mob />>
+           </MediaQuery>*/}
+        {/*<MediaQuery minDeviceWidth={1224} >*/}
           <Route path="/" exact /*component={MainPage}*/ render={() =>
               <MainPage cokolwiek={"cokolwiek"} />}/>
-        </MediaQuery>
+        {/*</MediaQuery>*/}
         <Route path="/login" exact component={LoginPage} />
         <Route path="/register" exact component={Register} />
         <Route path="/forgetPass" exact component={ForgetPass} />

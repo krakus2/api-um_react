@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import MainPage from './MainPage'
+import MainPage_Mob from './MainPage_Mob'
 import SearchBar from './SearchBar';
 import InlineError from './Messages/InlineError'
 import NavBar from './NavBar'
@@ -226,6 +228,12 @@ class MainPage extends Component {
     const { wrongLineNum, results, avgLat, avgLng, emptyResult, searchCounter,
       autoRefresh, loading } = this.state
     return (
+    <MediaQuery maxDeviceWidth={1224}>
+        <MainPage_Mob state2={...this.state}/>>
+    </MediaQuery>
+    <MediaQuery minDeviceWidth={1224}>
+        <MainPage/>>
+    </MediaQuery>
       <Wrapper>
       <NavBar onFavClickOn={this.onFavClickOn} onFavClickOff={this.onFavClickOff}/>
         <TopSection>
